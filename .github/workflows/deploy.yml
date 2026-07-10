@@ -1,13 +1,14 @@
-name: Deploy to Production
+name: CI Pipeline
 
 on:
   push:
     branches:
       - main
+  pull_request:
 
 jobs:
-  deploy:
-    name: Deploy to EC2
+  ci:
+    name: Run CI Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -26,15 +27,9 @@ jobs:
       - name: Run TypeScript check
         run: npx tsc --noEmit
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/webhook-delivery-engine
-            git pull origin main
-            docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
-            docker image prune -f
-            echo "Deployment complete!"
+      # Optional but recommended 👇
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build project
+        run: npm run build --if-present
