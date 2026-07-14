@@ -13,13 +13,22 @@ import routes from './routes';
 const app: Application = express();
 
 app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://webhook-delivery-engine.vercel.app',
-    /\.vercel\.app$/,
-  ],
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      /\.vercel\.app$/.test(origin);
+
+    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
