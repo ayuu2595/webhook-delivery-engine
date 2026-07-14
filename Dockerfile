@@ -24,6 +24,9 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Install openssl for Prisma runtime compatibility
+RUN apk add --no-cache openssl
+
 # Install only production deps
 COPY package*.json ./
 COPY prisma ./prisma/
